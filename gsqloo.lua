@@ -191,7 +191,7 @@ DATABASE.GetHost = DATABASE.GetHostName
 -- ANCHOR Functions
 
 function gsqloo.Create(hostname, username, password, schema, port, socket)
-    local id = util.CRC(hostname .. "_" .. username)
+    local id = util.CRC(hostname .. "_" .. schema)
     local db = setmetatable({
         hostname = hostname,
         username = username,
