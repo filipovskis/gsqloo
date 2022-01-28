@@ -35,6 +35,43 @@ local colorWhite = color_white
 local colorSuccess = Color(0, 255, 0)
 local colorError = Color(255, 0, 0)
 
+local function prepareArguments(query, lastIsCallback, ...)
+    local count = select("#", ...)
+
+    if (count > 0) then
+        local lastArgument, callback
+
+        if (lastIsCallback) then
+            lastArgument = select(count, ...)
+    
+            if (isfunction(lastArgument)) then
+                callback = lastArgument
+                count = count - 1
+            end
+        end
+
+        for i = 1, count do
+            local arg = select(i, ...)
+
+            if (arg == nil) then
+                query:setNull(i)
+            elseif (isnumber(arg)) then
+                query:setNumber(i, arg)
+            elseif (isbool(arg)) then
+                query:setBoolean(i, arg)
+            else
+                query:setString(i, tostring(arg))
+            end
+        end
+
+        if (lastIsCallback and callback) then
+            query.onSuccess = function(self, data)
+                callback(data, self)
+            end
+        end
+    end
+end
+
 -- ANCHOR Transaction
 
 local TRANSACTION = {}
@@ -50,23 +87,8 @@ end
 
 function TRANSACTION:Prepare(str, ...)
     local query = self.database.handler:prepare(str)
-    local count = select("#", ...)
 
-    if (count > 0) then
-        for i = 1, count do
-            local arg = select(i, ...)
-
-            if (arg == nil) then
-                query:setNull(i)
-            elseif (isnumber(arg)) then
-                query:setNumber(i, arg)
-            elseif (isbool(arg)) then
-                query:setBoolean(i, arg)
-            else
-                query:setString(i, tostring(arg))
-            end
-        end
-    end
+    prepareArguments(query, false, ...)
 
 	self.handler:addQuery(query)
 
@@ -141,35 +163,7 @@ function DATABASE:Prepare(str, ...)
         self:Error(error)
     end
 
-    if (count > 0) then
-        local last = select(count, ...)
-        local callback
-
-        if (isfunction(last)) then
-            callback = last
-            count = count - 1
-        end
-
-        for i = 1, count do
-            local arg = select(i, ...)
-
-            if (arg == nil) then
-                obj:setNull(i)
-            elseif (isnumber(arg)) then
-                obj:setNumber(i, arg)
-            elseif (isbool(arg)) then
-                obj:setBoolean(i, arg)
-            else
-                obj:setString(i, tostring(arg))
-            end
-        end
-
-        if (callback) then
-            obj.onSuccess = function(query, data)
-                callback(data, query)
-            end
-        end
-    end
+    prepareArguments(obj, true, ...)
 
     obj:start()
 end
