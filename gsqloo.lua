@@ -132,7 +132,7 @@ function DATABASE:Error(text)
 end
 
 function DATABASE:Success(text)
-    MsgC(Color(200, 200, 0), "[MySQL] ", colorGreen, "[SUCCESS] ", colorWhite, tostring(self), " -> ", text, "\n")
+    MsgC(Color(200, 200, 0), "[MySQL] ", colorSuccess, "[SUCCESS] ", colorWhite, tostring(self), " -> ", text, "\n")
 end
 
 function DATABASE:Query(str, callback)
