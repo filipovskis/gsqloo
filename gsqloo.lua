@@ -43,7 +43,7 @@ local function prepareArguments(query, lastIsCallback, ...)
 
         if (lastIsCallback) then
             lastArgument = select(count, ...)
-    
+
             if (isfunction(lastArgument)) then
                 callback = lastArgument
                 count = count - 1
@@ -90,7 +90,7 @@ function TRANSACTION:Prepare(str, ...)
 
     prepareArguments(query, false, ...)
 
-	self.handler:addQuery(query)
+    self.handler:addQuery(query)
 
     return self
 end
@@ -104,11 +104,11 @@ function TRANSACTION:Start(callback)
         end
     end
 
-    obj.onError = function(query, error)
-        self.database:Error(error)
+    obj.onError = function(query, errorText)
+        self.database:Error(errorText)
     end
 
-	obj.onAborted = obj.onError
+    obj.onAborted = obj.onError
 
     obj:start()
 end
@@ -144,11 +144,11 @@ function DATABASE:Query(str, callback)
         end
     end
 
-    obj.onError = function(query, error)
-        self:Error(error)
+    obj.onError = function(query, errorText)
+        self:Error(errorText)
     end
 
-	obj.onAborted = obj.onError
+    obj.onAborted = obj.onError
 
     obj:start()
 
@@ -157,10 +157,9 @@ end
 
 function DATABASE:Prepare(str, ...)
     local obj = self.handler:prepare(str)
-    local count = select("#", ...)
 
-    obj.onError = function(query, error)
-        self:Error(error)
+    obj.onError = function(query, errorText)
+        self:Error(errorText)
     end
 
     prepareArguments(obj, true, ...)
@@ -169,7 +168,7 @@ function DATABASE:Prepare(str, ...)
 end
 
 function DATABASE:Transaction()
-	local handler = self.handler:createTransaction()
+    local handler = self.handler:createTransaction()
 
     local transaction = setmetatable({
         database = self,
@@ -210,8 +209,8 @@ function gsqloo.Create(hostname, username, password, schema, port, socket)
 
         hook.Run("gsqloo.OnConnected", db)
     end
-    db.handler.onConnectionFailed = function(handler, error)
-        db:Error(error)
+    db.handler.onConnectionFailed = function(handler, errorText)
+        db:Error(errorText)
     end
 
     -- Keep database connection stable
